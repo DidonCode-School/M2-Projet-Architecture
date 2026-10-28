@@ -1,17 +1,18 @@
-from event import Event
+from app.messaging.event import Event 
 import pika
 
 class Consumer:
 
-    # Initialize the consumer with RabbitMQ connection parameters
     def __init__(self, amqp_url: str):
+        """Initialize the consumer with RabbitMQ connection parameters."""
         params = pika.URLParameters(amqp_url)
         self.connection = pika.BlockingConnection(params)
         self.channel = self.connection.channel()
+        self.is_running = False
 
 
-    # Setup the exchange, queue, and routing keys for the consumer
     def setup(self, exchange_name: str, queue_name: str, routing_keys: list, on_event_callback):
+        """Setup the exchange, queue, and routing keys for the consumer."""
         # Configure the exchange and queue
         self.channel.exchange_declare(exchange=exchange_name, exchange_type="topic", durable=True, passive=True)
         self.channel.queue_declare(queue=queue_name, durable=True)
@@ -23,10 +24,10 @@ class Consumer:
         self.on_event_callback = on_event_callback
         self.channel.basic_consume(queue=queue_name, on_message_callback=self.on_message)
 
-
-    # Callback function to handle incoming messages
     def on_message(self, channel, method, properties, body):
+        """Callback function to handle incoming messages from the queue."""
         try:
+            # Create an Event object and invoke the callback function
             self.on_event_callback(Event(channel, method, properties, body))
             channel.basic_ack(delivery_tag=method.delivery_tag)
         except Exception as e:
@@ -34,16 +35,21 @@ class Consumer:
             # In case of error, do not requeue the faulty message (requeue=False)
             channel.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
 
-    # Start consuming messages from the queue
     def start_consuming(self):
-        print("[*] Worker listening for messages !")
-        try:
-            self.channel.start_consuming()
-        except KeyboardInterrupt:
-            self.__del__()
+        """Start consuming messages from the queue."""
+        if(self.is_running):
+            print("[INFO] Consumer is already running.")
+            return
 
+        self.is_running = True
+        self.channel.start_consuming()
 
-    # Close the connection and channel when the consumer is deleted
-    def __del__(self):
+    def stop_consuming(self):
+        """Closes the consumer connection and stops consuming messages."""
+        if not self.is_running:
+            print("[INFO] Consumer is not running.")
+            return
+
         self.channel.stop_consuming()
         self.connection.close()
+        self.is_running = False
