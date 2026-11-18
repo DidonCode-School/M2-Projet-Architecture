@@ -122,6 +122,7 @@ class BookingConfirmationDocument(BaseModel):
             content=self.content
         )
 
+    @staticmethod
     def from_event(event: Event):
         """Crée une instance de BookingConfirmationDocument à partir d'un événement."""
         return BookingConfirmationDocument(
