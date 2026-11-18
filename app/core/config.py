@@ -1,9 +1,10 @@
-from dotenv import load_dotenv
 import os
+from dotenv import load_dotenv
 from app.models.access.access_entry import AccessEntryDocument
 from app.models.access.access_exit import AccessExitDocument
 from app.models.booking.booking_confirmation import BookingConfirmationDocument
 
+# Load environment variables from .env file
 load_dotenv()
 
 class Config:
@@ -17,3 +18,11 @@ class Config:
         "access.exit": AccessExitDocument,
         "booking.confirmed": BookingConfirmationDocument
     }
+
+    LOGGER_NAME = os.environ.get("LOGGER_NAME", "MonProjet")
+
+    LOG_LEVEL = os.environ.get("LOGGER_LEVEL", "INFO")
+    LOG_DIR = os.environ.get("LOG_DIR", "logs")
+    LOG_FILE = os.environ.get("LOG_FILE", "app.log")
+    LOG_FORMAT = os.environ.get("LOG_FORMAT", "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s")
+    DATE_FORMAT = os.environ.get("DATE_FORMAT", "%d/%m/%Y %H:%M:%S")
