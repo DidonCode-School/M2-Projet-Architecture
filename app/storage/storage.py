@@ -1,9 +1,12 @@
+import logging
 import os
+from app.core.config import Config
 
 class Storage:
 
     def __init__(self, path: str = "/"):
         """Initialise le stockage avec un chemin spécifique."""
+        self.logger = logging.getLogger(Config.LOGGER_NAME)
         self.root = os.path.abspath("storage")
         self.path = os.path.join(self.root, path.lstrip("/\\"))
 
@@ -22,7 +25,7 @@ class Storage:
             with open(file_path, "wb") as f:
                 f.write(content)
 
-            print(f"[INFO] Fichier enregistré : {file_path}")
+            self.logger.info(f"Fichier enregistré : {file_path}")
             return file_path
         except Exception as e:
-            print(f"[ERREUR] Échec de l'enregistrement du fichier : {e}")
+            self.logger.error(f"Échec de l'enregistrement du fichier : {e}")

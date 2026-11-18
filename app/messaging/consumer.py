@@ -1,10 +1,13 @@
-from app.messaging.event import Event 
+import logging
 import pika
+from app.core.config import Config
+from app.messaging.event import Event
 
 class Consumer:
 
     def __init__(self, amqp_url: str):
         """Initialize the consumer with RabbitMQ connection parameters."""
+        self.logger = logging.getLogger(Config.LOGGER_NAME)
         params = pika.URLParameters(amqp_url)
         self.connection = pika.BlockingConnection(params)
         self.channel = self.connection.channel()
@@ -31,14 +34,14 @@ class Consumer:
             self.on_event_callback(Event(channel, method, properties, body))
             channel.basic_ack(delivery_tag=method.delivery_tag)
         except Exception as e:
-            print(f"[ERREUR] Traitment error : {e}")
+            self.logger.error(f"Traitment error : {e}")
             # In case of error, do not requeue the faulty message (requeue=False)
             channel.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
 
     def start_consuming(self):
         """Start consuming messages from the queue."""
         if(self.is_running):
-            print("[INFO] Consumer is already running.")
+            self.logger.info("Consumer is already running.")
             return
 
         self.is_running = True
@@ -47,7 +50,7 @@ class Consumer:
     def stop_consuming(self):
         """Closes the consumer connection and stops consuming messages."""
         if not self.is_running:
-            print("[INFO] Consumer is not running.")
+            self.logger.info("Consumer is not running.")
             return
 
         self.channel.stop_consuming()

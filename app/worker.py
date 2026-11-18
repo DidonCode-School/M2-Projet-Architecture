@@ -1,3 +1,4 @@
+import logging
 from app.messaging.event import Event
 from app.messaging.consumer import Consumer
 from app.core.config import Config
@@ -7,6 +8,7 @@ class Worker:
 
     def __init__(self):
         """Initializes the Worker class, sets up the storage and consumer for processing messages from the event bus."""
+        self.logger = logging.getLogger(Config.LOGGER_NAME)
 
         # Define the storage path for saving generated documents
         self.storage = Storage()
@@ -22,7 +24,9 @@ class Worker:
 
     def on_message(self, event: Event):
         """Callback function to handle incoming messages from the event bus."""
-        print(f"[INFO] Received message with routing key: {event.method.routing_key}")
+        self.logger.info(
+            f"Received message with routing key: {event.method.routing_key}"
+        )
 
         routing_key = event.method.routing_key
 
@@ -30,18 +34,20 @@ class Worker:
             document_template = Config.ROUTING_KEYS[routing_key]
 
             if document_template == None:
-                print(f"[INFO] No document template found for routing key: {routing_key}")
+                self.logger.info(
+                    f"No document template found for routing key: {routing_key}"
+                )
                 return
 
             pdf = document_template.from_event(event)
             pdf.generate_pdf()
             pdf.save(self.storage)
         except Exception as e:
-            print(f"[ERREUR] Impossible de traiter le message : {e}")
+            self.logger.error(f"Impossible de traiter le message : {e}")
 
     def start(self):
         """Starts the worker to listen for messages from the event bus."""
-        print("[*] Worker listening for messages !")
+        self.logger.info("[*] Worker listening for messages !")
         try:
             self.consumer.start_consuming()
         except KeyboardInterrupt:
@@ -51,6 +57,6 @@ class Worker:
 
     def stop(self):
         """Stops the worker and closes the consumer connection."""
-        print("[*] Stopping worker...")
+        self.logger.info("Stopping worker...")
         self.consumer.stop_consuming()
-        print("[*] Worker stopped.")
+        self.logger.info("Worker stopped.")
