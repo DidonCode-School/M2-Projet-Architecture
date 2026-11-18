@@ -30,3 +30,12 @@ Fait
 Suite
 - Crée les modèles pour les entrées et sorties du service `Access`
 - Mettre en place le CI/CD
+
+## 18 Novembre
+
+Fait
+- Ajout d'un logger et des fichiers de logs
+- Finalisation des modèles PDF
+
+Suite
+- Mettre en place le CI/CD
