@@ -49,15 +49,15 @@ class Api(threading.Thread):
 
     def get_access_entry_pdf(self, uuid: str):
         """Return a stored Access Entry PDF file."""
-        return self.get_pdf("access/entry", uuid)
+        return self.get_pdf("access/entrys", uuid)
 
     def get_access_exit_pdf(self, uuid: str):
         """Return a stored Access Exit PDF file."""
-        return self.get_pdf("access/exit", uuid)
+        return self.get_pdf("access/exits", uuid)
 
     def get_booking_confirmation_pdf(self, uuid: str):
         """Return a stored Booking Confirmation PDF file."""
-        return self.get_pdf("booking/confirmation", uuid)
+        return self.get_pdf("booking/confirmations", uuid)
 
     def get_pdf(self, sub_path: str, uuid: str):
         """Return a stored PDF file."""
