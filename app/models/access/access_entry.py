@@ -1,5 +1,7 @@
+import requests
 import datetime
 from fpdf import FPDF
+from app.core.config import Config
 from app.messaging.event import Event
 from app.models.base_model import BaseModel
 
@@ -7,7 +9,7 @@ class AccessEntryDocument(BaseModel):
     def __init__(
         self,
         event_id: int,
-        vehicle_id: int,
+        vehicle_plate: int,
         place_id: int,
         has_reservation: bool,
         place_type: dict,
@@ -18,7 +20,7 @@ class AccessEntryDocument(BaseModel):
         """Initialise les attributs du document d'entrée de parking."""
         super().__init__()
         self.event_id = event_id
-        self.vehicle_id = vehicle_id
+        self.vehicle_plate = vehicle_plate
         self.place_id = place_id
         self.has_reservation = has_reservation
         self.place_type = place_type or {}
@@ -127,7 +129,7 @@ class AccessEntryDocument(BaseModel):
         pdf.cell(
             0,
             8,
-            f"ID VEHICULE : {self.vehicle_id}",
+            f"PLAQUE : {self.vehicle_plate}",
         )
 
         # =============================
@@ -294,12 +296,22 @@ class AccessEntryDocument(BaseModel):
                 created_at.replace("Z", "+00:00")
             )
 
-        return AccessEntryDocument(
-            event_id=event.get("id"),
-            vehicle_id=payload.get("vehicleId"),
-            place_id=payload.get("placeId"),
-            has_reservation=payload.get("reservation", False),
-            place_type=place_type,
-            category=place_type.get("category", 0),
-            created_at=created_at,
-        )
+        try:
+            response = requests.get(
+                f"{Config.VEHICLE_SERVICE_URL}/api/vehicle/{payload.get('vehicleId')}/plate",
+                timeout=(5.0, 120.0),
+            )
+            response.raise_for_status()
+            vehicle_plate = response.text
+
+            return AccessEntryDocument(
+                event_id=event.get("id"),
+                vehicle_plate=vehicle_plate,
+                place_id=payload.get("placeId"),
+                has_reservation=payload.get("reservation", False),
+                place_type=place_type,
+                category=place_type.get("category", 0),
+                created_at=created_at,
+            )
+        except requests.RequestException as exc:
+            print(f"Échec de la requête : {exc}")

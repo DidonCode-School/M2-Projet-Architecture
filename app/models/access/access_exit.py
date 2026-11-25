@@ -1,5 +1,7 @@
 import datetime
 from fpdf import FPDF
+import requests
+from app.core.config import Config
 from app.models.base_model import BaseModel
 from app.messaging.event import Event
 
@@ -7,7 +9,7 @@ class AccessExitDocument(BaseModel):
     def __init__(
         self, 
         event_id: str,
-        vehicle_id: str,
+        vehicle_plate: str,
         place_id: str,
         amount: float,  
         payment_id: str,
@@ -15,7 +17,7 @@ class AccessExitDocument(BaseModel):
     ):
         super().__init__()
         self.event_id = event_id
-        self.vehicle_id = vehicle_id
+        self.vehicle_plate = vehicle_plate
         self.place_id = place_id
         self.amount = amount
         self.payment_id = payment_id
@@ -122,7 +124,7 @@ class AccessExitDocument(BaseModel):
         pdf.cell(
             0,
             8,
-            f"ID VEHICULE : {self.vehicle_id}",
+            f"PLAQUE : {self.vehicle_plate}",
         )
 
         # =============================
@@ -271,11 +273,21 @@ class AccessExitDocument(BaseModel):
                 created_at.replace("Z", "+00:00")
             )
 
-        return AccessExitDocument(
-            event_id=event.get("id"),
-            vehicle_id=payload.get("vehicleId"),
-            place_id=payload.get("placeId"),
-            amount=float(payload.get("amount") or 0),
-            payment_id=payload.get("paymentId"),
-            created_at=created_at,
-        )
+        try:
+            response = requests.get(
+                f"{Config.VEHICLE_SERVICE_URL}/api/vehicle/{payload.get('vehicleId')}/plate",
+                timeout=(5.0, 120.0),
+            )
+            response.raise_for_status()
+            vehicle_plate = response.text
+
+            return AccessExitDocument(
+                event_id=event.get("id"),
+                vehicle_plate=vehicle_plate,
+                place_id=payload.get("placeId"),
+                amount=float(payload.get("amount") or 0),
+                payment_id=payload.get("paymentId"),
+                created_at=created_at,
+            )
+        except requests.RequestException as exc:
+            print(f"Échec de la requête : {exc}")

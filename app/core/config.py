@@ -9,16 +9,19 @@ load_dotenv()
 
 class Config:
 
+    # RabbitMQ configuration
     AMQP_URL = os.environ.get("CLOUDAMQP_URL", "amqps://user:password@hostname/vhost")
     EXCHANGE_NAME = os.environ.get("EXCHANGE_NAME", "event-bus")
     QUEUE_NAME = os.environ.get("QUEUE_NAME", "messages-service-queue")
 
+    # Routing keys mapping to document templates
     ROUTING_KEYS = {
         "access.entry": AccessEntryDocument,
         "access.exit": AccessExitDocument,
         "booking.confirmed": BookingConfirmationDocument
     }
 
+    # Logging configuration
     LOGGER_NAME = os.environ.get("LOGGER_NAME", "MonProjet")
 
     LOG_LEVEL = os.environ.get("LOGGER_LEVEL", "INFO")
@@ -26,3 +29,6 @@ class Config:
     LOG_FILE = os.environ.get("LOG_FILE", "app.log")
     LOG_FORMAT = os.environ.get("LOG_FORMAT", "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s")
     DATE_FORMAT = os.environ.get("DATE_FORMAT", "%d/%m/%Y %H:%M:%S")
+
+    # Services
+    VEHICLE_SERVICE_URL = os.environ.get("VEHICLE_SERVICE_URL", "http://localhost:8000")

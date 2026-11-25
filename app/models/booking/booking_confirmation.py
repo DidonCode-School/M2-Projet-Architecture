@@ -1,3 +1,6 @@
+import requests
+
+from app.core.config import Config
 from app.models.base_model import BaseModel
 from app.messaging.event import Event
 from fpdf import FPDF
@@ -8,7 +11,7 @@ class BookingConfirmationDocument(BaseModel):
     def __init__(
         self, 
         reservation_id: int, 
-        vehicle_id: str, 
+        vehicle_plate: str, 
         email: bool,
         place_type: str,
         start_at: datetime,
@@ -19,7 +22,7 @@ class BookingConfirmationDocument(BaseModel):
         """Initialise les attributs du document de confirmation de réservation."""
         super().__init__()
         self.reservation_id = reservation_id
-        self.vehicle_id = vehicle_id
+        self.vehicle_plate = vehicle_plate
         self.email = email
         self.place_type = place_type
         self.start_at = start_at
@@ -57,7 +60,7 @@ class BookingConfirmationDocument(BaseModel):
         fields = [
             ("N° de réservation :", f"#{self.reservation_id}"),
             ("Email client :", self.email),
-            ("Véhicule :", self.vehicle_id),
+            ("Plaque d'immatriculation :", self.vehicle_plate),
         ]
     
         for label, val in fields:
@@ -125,13 +128,24 @@ class BookingConfirmationDocument(BaseModel):
     @staticmethod
     def from_event(event: Event):
         """Crée une instance de BookingConfirmationDocument à partir d'un événement."""
-        return BookingConfirmationDocument(
-            reservation_id=event.get("reservation_id"),
-            vehicle_id=event.get("vehicle_id"),
-            email=event.get("email"),
-            place_type=event.get("place_type"),
-            start_at=datetime.datetime.fromisoformat(event.get("start_at")),
-            end_at=datetime.datetime.fromisoformat(event.get("end_at")),
-            price_amount=event.get("price_amount"),
-            payment_id=event.get("payment_id")
-        )
+
+        try:
+            response = requests.get(
+                f"{Config.VEHICLE_SERVICE_URL}/api/vehicle/{event.get('vehicleId')}/plate",
+                timeout=(5.0, 120.0),
+            )
+            response.raise_for_status()
+            vehicle_plate = response.text
+
+            return BookingConfirmationDocument(
+                reservation_id=event.get("reservation_id"),
+                vehicle_plate=vehicle_plate,
+                email=event.get("email"),
+                place_type=event.get("place_type"),
+                start_at=datetime.datetime.fromisoformat(event.get("start_at")),
+                end_at=datetime.datetime.fromisoformat(event.get("end_at")),
+                price_amount=event.get("price_amount"),
+                payment_id=event.get("payment_id")
+            )
+        except requests.RequestException as exc:
+            print(f"Échec de la requête : {exc}")
