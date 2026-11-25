@@ -1,4 +1,5 @@
 import logging
+import threading
 import pika
 from app.core.config import Config
 from app.messaging.event import Event
@@ -45,9 +46,12 @@ class Consumer:
             return
 
         self.is_running = True
-        self.channel.start_consuming()
+        try:
+            self.channel.start_consuming()
+        finally:
+            self.is_running = False
 
-    def stop_consuming(self):
+    def stop_consuming(self, timeout: float = 5.0):
         """Closes the consumer connection and stops consuming messages."""
         if not self.is_running:
             self.logger.info("Consumer is not running.")
