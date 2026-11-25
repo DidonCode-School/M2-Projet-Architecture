@@ -1,4 +1,9 @@
+# EVENT BUS
 pika
 python-dotenv
 fpdf
 requests
+# API
+fastapi 
+uvicorn 
+prometheus-client
