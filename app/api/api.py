@@ -21,8 +21,8 @@ class Api(threading.Thread):
         
 
     def setup_routes(self):
-        self.app.add_api_route("v1/health", self.health, methods=["GET"])
-        self.app.add_api_route("v1/metrics", self.metrics, methods=["GET"])
+        self.app.add_api_route("/v1/health", self.health, methods=["GET"])
+        self.app.add_api_route("/v1/metrics", self.metrics, methods=["GET"])
         self.app.add_api_route(
             "/v1/documents/access/entry/{uuid}",
             self.get_access_entry_pdf,
