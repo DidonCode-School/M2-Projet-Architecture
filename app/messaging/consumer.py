@@ -13,6 +13,8 @@ class Consumer:
         self.connection = pika.BlockingConnection(params)
         self.channel = self.connection.channel()
         self.is_running = False
+        self._state_lock = threading.Lock()
+        self._stop_requested = threading.Event()
 
 
     def setup(self, exchange_name: str, queue_name: str, routing_keys: list, on_event_callback):
@@ -41,22 +43,33 @@ class Consumer:
 
     def start_consuming(self):
         """Start consuming messages from the queue."""
-        if(self.is_running):
-            self.logger.info("Consumer is already running.")
-            return
+        with self._state_lock:
+            if self._stop_requested.is_set():
+                return
+            if self.is_running:
+                self.logger.info("Consumer is already running.")
+                return
+            self.is_running = True
 
-        self.is_running = True
+        self.logger.info("Consumer started !")
         try:
             self.channel.start_consuming()
         finally:
-            self.is_running = False
+            with self._state_lock:
+                self.is_running = False
 
-    def stop_consuming(self, timeout: float = 5.0):
-        """Closes the consumer connection and stops consuming messages."""
-        if not self.is_running:
-            self.logger.info("Consumer is not running.")
-            return
+    def stop_consuming(self):
+        """Request the consumer loop to stop."""
+        with self._state_lock:
+            self._stop_requested.set()
+            if not self.is_running:
+                self.logger.info("Consumer is not running.")
+                return
 
-        self.channel.stop_consuming()
-        self.connection.close()
-        self.is_running = False
+        self.logger.info("Stopping consumer...")
+        self.connection.add_callback_threadsafe(self.channel.stop_consuming)
+
+    def close(self):
+        """Close the connection from the thread that owns it."""
+        if self.connection.is_open:
+            self.connection.close()

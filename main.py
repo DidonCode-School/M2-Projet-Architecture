@@ -1,8 +1,11 @@
 import signal
 import threading
+from app.core.logger import load_logger
 from app.api.api import Api
 from app.messaging.worker import Worker
 import threading
+
+load_logger()
 
 def main():
     shutdown_event = threading.Event()

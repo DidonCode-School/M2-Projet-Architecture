@@ -24,17 +24,17 @@ class Api(threading.Thread):
         self.app.add_api_route("/v1/health", self.health, methods=["GET"])
         self.app.add_api_route("/v1/metrics", self.metrics, methods=["GET"])
         self.app.add_api_route(
-            "/v1/documents/access/entry/{uuid}",
+            "/v1/documents/access/entrys/{uuid}",
             self.get_access_entry_pdf,
             methods=["GET"],
         )
         self.app.add_api_route(
-            "/v1/documents/access/exit/{uuid}",
+            "/v1/documents/access/exits/{uuid}",
             self.get_access_exit_pdf,
             methods=["GET"],
         )
         self.app.add_api_route(
-            "/v1/documents/booking/confirmation/{uuid}",
+            "/v1/documents/booking/confirmations/{uuid}",
             self.get_booking_confirmation_pdf,
             methods=["GET"],
         )

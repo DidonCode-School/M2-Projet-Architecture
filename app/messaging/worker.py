@@ -21,24 +21,15 @@ class Worker(threading.Thread):
         super().__init__(name="worker-thread", daemon=True)
         
         self.logger = logging.getLogger(Config.LOGGER_NAME)
+        self._stop_event = threading.Event()
+        self.consumer: Consumer | None = None
 
         # Define the storage path for saving generated documents
         self.storage = Storage()
 
-        # Define the consumer and start consuming messages
-        self.consumer = Consumer(Config.AMQP_URL)
-        self.consumer.setup(
-            exchange_name=Config.EXCHANGE_NAME,
-            queue_name=Config.QUEUE_NAME,
-            routing_keys=ROUTING_KEYS.keys(),
-            on_event_callback=self.on_message
-        )
-
     def on_message(self, event: Event):
         """Callback function to handle incoming messages from the event bus."""
-        self.logger.info(
-            f"Received message with routing key: {event.method.routing_key}; {event.toString()}"
-        )
+        self.logger.info(f"Received message with routing key: {event.method.routing_key}; {event.toString()}")
 
         routing_key = event.method.routing_key
 
@@ -60,12 +51,32 @@ class Worker(threading.Thread):
     def run(self):
         """Starts the worker to listen for messages from the event bus."""
         self.logger.info("[*] Worker listening for messages !")
-        self.consumer.start_consuming()
+        consumer = Consumer(Config.AMQP_URL)
+        self.consumer = consumer
+        try:
+            consumer.setup(
+                exchange_name=Config.EXCHANGE_NAME,
+                queue_name=Config.QUEUE_NAME,
+                routing_keys=ROUTING_KEYS.keys(),
+                on_event_callback=self.on_message
+            )
+            if self._stop_event.is_set():
+                consumer.stop_consuming()
+            consumer.start_consuming()
+        finally:
+            consumer.close()
+            self.consumer = None
 
     def stop(self, timeout: float = 5.0):
         """Stops the worker and closes the consumer connection."""
         self.logger.info("Stopping worker...")
-        self.consumer.stop_consuming()
+        self._stop_event.set()
+        consumer = self.consumer
+        if consumer is not None:
+            consumer.stop_consuming()
         if self.is_alive():
             self.join(timeout=timeout)
-        self.logger.info("Worker stopped.")
+        if self.is_alive():
+            self.logger.warning("Worker did not stop within %.1f seconds.", timeout)
+        else:
+            self.logger.info("Worker stopped.")
