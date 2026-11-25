@@ -25,7 +25,7 @@ class Worker:
     def on_message(self, event: Event):
         """Callback function to handle incoming messages from the event bus."""
         self.logger.info(
-            f"Received message with routing key: {event.method.routing_key}"
+            f"Received message with routing key: {event.method.routing_key}; {event.toString()}"
         )
 
         routing_key = event.method.routing_key
