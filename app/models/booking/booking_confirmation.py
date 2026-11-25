@@ -131,7 +131,7 @@ class BookingConfirmationDocument(BaseModel):
 
         try:
             response = requests.get(
-                f"{Config.VEHICLE_SERVICE_URL}/api/vehicle/{event.get('vehicleId')}/plate",
+                f"{Config.VEHICLE_SERVICE_URL}/api/vehicle/{event.get('vehicle_id')}/plate",
                 timeout=(5.0, 120.0),
             )
             response.raise_for_status()
