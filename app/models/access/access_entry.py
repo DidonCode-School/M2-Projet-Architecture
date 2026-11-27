@@ -54,8 +54,7 @@ class AccessEntryDocument(BaseModel):
             6,
             "TICKET D'ENTREE",
             align="C",
-            new_x="LMARGIN",
-            new_y="NEXT",
+            ln=1,
         )
 
         pdf.set_text_color(*grey)
@@ -66,8 +65,7 @@ class AccessEntryDocument(BaseModel):
             5,
             "ENTREE AUTORISEE",
             align="C",
-            new_x="LMARGIN",
-            new_y="NEXT",
+            ln=1,
         )
 
         pdf.ln(4)
@@ -270,7 +268,7 @@ class AccessEntryDocument(BaseModel):
             align="C",
         )
 
-        self.content = bytes(pdf.output())
+        self.content = pdf.output(dest="S").encode("latin-1")
 
         return self.content
 

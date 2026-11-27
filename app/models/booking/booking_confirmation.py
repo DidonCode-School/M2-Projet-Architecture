@@ -39,11 +39,11 @@ class BookingConfirmationDocument(BaseModel):
     
         # En-tête
         pdf.set_font("Helvetica", style="B", size=16)
-        pdf.cell(0, 8, "REÇU DE RÉSERVATION", align="C", new_x="LMARGIN", new_y="NEXT")
+        pdf.cell(0, 8, "REÇU DE RÉSERVATION", align="C", ln=1)
     
         pdf.set_font("Helvetica", size=9)
         pdf.cell(
-            0, 4, "Confirmation de paiement", align="C", new_x="LMARGIN", new_y="NEXT"
+            0, 4, "Confirmation de paiement", align="C", ln=1
         )
     
         pdf.ln(4)
@@ -65,9 +65,9 @@ class BookingConfirmationDocument(BaseModel):
     
         for label, val in fields:
             pdf.set_font("Helvetica", size=9)
-            pdf.cell(38, 5, label, new_x="RIGHT", new_y="LAST")
+            pdf.cell(38, 5, label)
             pdf.set_font("Helvetica", style="B", size=9)
-            pdf.cell(0, 5, val, new_x="LMARGIN", new_y="NEXT")
+            pdf.cell(0, 5, val, ln=1)
     
         pdf.ln(4)
     
@@ -75,7 +75,7 @@ class BookingConfirmationDocument(BaseModel):
         pdf.set_fill_color(240, 243, 246)
         pdf.set_font("Helvetica", style="B", size=9)
         pdf.cell(
-            0, 7, "  Détails de la réservation", fill=True, new_x="LMARGIN", new_y="NEXT"
+            0, 7, "  Détails de la réservation", fill=True, ln=1
         )
         pdf.ln(2)
     
@@ -88,8 +88,8 @@ class BookingConfirmationDocument(BaseModel):
         ]
     
         for label, val in details:
-            pdf.cell(45, 6, label, border="B", new_x="RIGHT", new_y="LAST")
-            pdf.cell(0, 6, val, border="B", align="R", new_x="LMARGIN", new_y="NEXT")
+            pdf.cell(45, 6, label, border="B")
+            pdf.cell(0, 6, val, border="B", align="R", ln=1)
     
         pdf.ln(4)
     
@@ -97,10 +97,10 @@ class BookingConfirmationDocument(BaseModel):
         pdf.set_fill_color(230, 240, 255)
         pdf.set_font("Helvetica", style="B", size=10)
         pdf.cell(
-            60, 8, " Montant total réglé", fill=True, new_x="RIGHT", new_y="LAST"
+            60, 8, " Montant total réglé", fill=True
         )
         pdf.cell(
-            0, 8, f"{self.price_amount} EUR", fill=True, align="R", new_x="LMARGIN", new_y="NEXT"
+            0, 8, f"{self.price_amount} EUR", fill=True, align="R", ln=1
         )
     
         # Pied de page
@@ -113,7 +113,7 @@ class BookingConfirmationDocument(BaseModel):
             align="C",
         )
 
-        self.content = bytes(pdf.output())
+        self.content = pdf.output(dest="S").encode("latin-1")
 
         return self.content
 

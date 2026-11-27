@@ -49,8 +49,7 @@ class AccessExitDocument(BaseModel):
             6,
             "TICKET DE SORTIE",
             align="C",
-            new_x="LMARGIN",
-            new_y="NEXT",
+            ln=1,
         )
 
         pdf.set_text_color(*grey)
@@ -61,8 +60,7 @@ class AccessExitDocument(BaseModel):
             5,
             "SORTIE AUTORISEE",
             align="C",
-            new_x="LMARGIN",
-            new_y="NEXT",
+            ln=1,
         )
 
         pdf.ln(4)
@@ -249,7 +247,7 @@ class AccessExitDocument(BaseModel):
             align="C",
         )
 
-        self.content = bytes(pdf.output())
+        self.content = pdf.output(dest="S").encode("latin-1")
 
         return self.content
     
