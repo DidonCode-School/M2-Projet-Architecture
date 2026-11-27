@@ -9,7 +9,7 @@ Le service **Messages** est responsable de la production des documents (ex. fich
 
 | Paramètre | Valeur |
 | --- | --- |
-| **Version actuelle** | `0.1.0` |
+| **Version actuelle** | `1.0.0` |
 | **URL du service déployé** | `https://messages.api.domain.com` |
 | **Documentation Swagger/OpenAPI** | `https://messages.api.domain.com/swagger-ui` |
 

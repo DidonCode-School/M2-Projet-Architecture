@@ -39,3 +39,17 @@ Fait
 
 Suite
 - Mettre en place le CI/CD
+
+## 25 Novembre
+
+Fait
+- Ajout d'une api pour les routes `/health` `/metrics`
+- Threading de l'api et le worker de l'évent bus
+
+Suite
+- Mettre en place le CI/CD
+
+## 27 Novembre
+
+Fait
+- Ajout des routes pour télécharger un document
